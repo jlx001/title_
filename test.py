@@ -3,4 +3,5 @@ import numpy
 import os
 
 if __name__ == '__main__':
-    pass
+    a = 1
+    print(a)

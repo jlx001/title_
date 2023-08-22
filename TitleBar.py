@@ -3,6 +3,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 
+
 class TitleBar(QWidget):
     def __init__(self, parent):
         super(TitleBar, self).__init__()

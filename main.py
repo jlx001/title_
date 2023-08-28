@@ -38,8 +38,5 @@ app.installTranslator(galleryTranslator)
 # create main window
 w = MainWindow()
 
-
-
 w.show()
-
 app.exec_()

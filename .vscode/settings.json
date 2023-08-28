@@ -10,5 +10,7 @@
         ".",
         "-p",
         "*test.py"
-    ]
+    ],
+    "commentTranslate.hover.enabled": true,
+    "python.analysis.typeCheckingMode": "off"
 }

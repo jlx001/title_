@@ -65,7 +65,7 @@ class MainWindow(FluentWindow):
         # 图层树
         self.tree = TreeWidget(self)
         self.tree.setIndentation(10)
-        
+
         self.tree.setMaximumWidth(200)
         # gridLayout.addWidget(self.tree)
         # 浏览器

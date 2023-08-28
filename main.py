@@ -1,7 +1,7 @@
 # coding:utf-8
 import os
 import sys
-
+import json
 from PyQt5.QtCore import Qt, QTranslator, QUrl
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QApplication
@@ -36,10 +36,17 @@ app.installTranslator(translator)
 app.installTranslator(galleryTranslator)
 
 # create main window
-w = MainWindow()
 
+conf = None
+urls = None
+win_conf = None
+#extent = None
+with open("conf.json", 'r', encoding='UTF-8') as f:
+    conf = json.load(f)
+urls = conf.get('urls')
+win_conf = conf.get('windows')
+win = MainWindow(conf)
 
-
-w.show()
+win.show()
 
 app.exec_()

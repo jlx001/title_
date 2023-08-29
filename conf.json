@@ -1,0 +1,24 @@
+{
+  "urls": {
+    "OMS": {
+      "OSM": "http://tile.openstreetmap.org/{z}/{x}/{y}.png"
+    },
+    "谷歌": {
+      "谷歌影像-02": "https://gac-geo.googlecnapps.cn/maps/vt?lyrs=s&gl=CN&x={x}&y={y}&z={z}",
+      "谷歌影像-84": "http://mts0.googleapis.com/vt?lyrs=s&x={x}&y={y}&z={z}",
+      "谷歌影像带标注-02": "https://gac-geo.googlecnapps.cn/maps/vt?lyrs=s,m&gl=CN&x={x}&y={y}&z={z}",
+      "谷歌影像带标注-84": "https://gac-geo.googlecnapps.cn/maps/vt?lyrs=s&x={x}&y={y}&z={z}",
+      "谷歌矢量-02": "https://gac-geo.googlecnapps.cn/maps/vt?lyrs=m&x={x}&y={y}&z={z}"
+    },
+    "高德-02": {
+      "高德影像": "https://webst01.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}",
+      "高德矢量": "http://wprd04.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=7&x={x}&y={y}&z={z}",
+      "高德路网": "https://wprd01.is.autonavi.com/appmaptile?x={x}&y={y}&z={z}&lang=zh_cn&size=1&scl=2&style=8&ltype=11"
+    }
+  },
+  "windows": {
+    "height": 808,
+    "outPath": "",
+    "width": 1343
+  }
+}

@@ -1,9 +1,10 @@
 # coding: utf-8
 import sys
-from PyQt5.QtCore import QUrl, QSize, Qt
+from PyQt5.QtCore import QUrl, QSize, Qt, QObject, pyqtSlot
 from PyQt5.QtGui import QIcon, QDesktopServices
-from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QHBoxLayout, QTreeWidget, QTreeWidgetItem, QSplitter
+from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QHBoxLayout, QTreeWidget, QTreeWidgetItem, QSplitter, QMessageBox
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
+from PyQt5.QtWebChannel import QWebChannel
 
 from qfluentwidgets import (NavigationAvatarWidget, NavigationItemPosition, MessageBox, FluentWindow, SplashScreen,
                             TreeWidget)
@@ -30,6 +31,21 @@ from ..common.signal_bus import signalBus
 from ..common.translator import Translator
 from ..common import resource
 
+class jsSignal(QObject):
+    # pyqtSlot，中文网络上大多称其为槽。作用是接收网页发起的信号
+    @pyqtSlot(str, str, str, str)
+    def setExtent(self, x1, y1, x2, y2):
+        # 对接收到的内容进行处理，比如调用打印机进行打印等等。
+        # 排序
+        x1 = float(x1)
+        x2 = float(x2)
+        y1 = float(y1)
+        y2 = float(y2)
+        if x1 > x2:
+            x2, x1 = x1, x2
+        if y1 < y2:
+            y1, y2 = y2, y1
+        print(x1, y1, x2, y2)
 
 class MainWindow(FluentWindow):
     def __init__(self, conf):
@@ -65,20 +81,27 @@ class MainWindow(FluentWindow):
         # 图层树
         self.tree = TreeWidget(self)
         self.tree.setIndentation(10)
-        
         self.tree.setMaximumWidth(200)
         # gridLayout.addWidget(self.tree)
-        # 浏览器
-        web = QWebEngineView(objectName='webView')
 
+        # 浏览器
+        self.web = QWebEngineView()
+
+        # 创建一个QWebChannel对象 # 增加一个通信中需要用到的频道
+        channel = QWebChannel()
+        printer = jsSignal()  # 通信过程中需要使用到的功能类
+
+        # 将MapHandler对象注册到QWebChannel中，命名为"printer"
+        channel.registerObject("printer", printer)
+        self.web.page().setWebChannel(channel)  # 在浏览器中设置该频道
         # web.load(QUrl('https://www.baidu.com/'))
         path = "file:///map.html"
         # path = path.replace('\\', '/')
-        web.load(QUrl(path))
+        self.web.load(QUrl(path))
 
         # 添加到布局
         splitter.addWidget(self.tree)
-        splitter.addWidget(web)
+        splitter.addWidget(self.web)
         gridLayout.addWidget(splitter)
 
         # 图层
@@ -91,7 +114,7 @@ class MainWindow(FluentWindow):
                 child = QTreeWidgetItem(root)
                 # child.setCheckState(0, Qt.Unchecked)
                 child.setText(0, key)
-
+        self.tree.itemClicked.connect(self.select_layer)
         # item1 = QTreeWidgetItem([self.tr('JoJo 1 - Phantom Blood')])
         # item1.addChildren([
         #     QTreeWidgetItem([self.tr('Jonathan Joestar')]),
@@ -120,6 +143,21 @@ class MainWindow(FluentWindow):
         # add items to navigation interface
         self.initNavigation()
         self.splashScreen.finish()
+
+    def select_layer(self, item):
+        map_name = item.text(0)
+        if map_name in self.urls.keys():
+            return
+        ask = QMessageBox.question(
+            self, '提示', '切换地图？', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if ask == QMessageBox.No:
+            return
+
+        url = self.urls.get(item.parent().text(0)).get(map_name)
+        # qwebengine.page().runJavaScript('url=\"'+url+'\";')
+        self.web.page().runJavaScript('setUrl(\"' + url + '\");')
+
+
 
     def connectSignalToSlot(self):
         signalBus.micaEnableChanged.connect(self.setMicaEffectEnabled)

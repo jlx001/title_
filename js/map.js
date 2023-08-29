@@ -72,7 +72,7 @@ function setUrl(url) {
 //监听鼠标左键信号
 map.on("singleclick", (evt) => {
   console.log(evt.coordinate);
-  //sendMes(evt.coordinate[0], evt.coordinate[1]);
+  // sendMes(1, 1,1,1);
 });
 //右键
 $(map.getViewport()).on("contextmenu", function (event) {

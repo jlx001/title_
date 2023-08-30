@@ -210,7 +210,7 @@ if __name__ == '__main__':
     conf = None
     urls = None
     win_conf = None
-    #extent = None
+    # extent = None
     with open("conf.json", 'r', encoding='UTF-8') as f:
         conf = json.load(f)
     urls = conf.get('urls')

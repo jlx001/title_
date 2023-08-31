@@ -13,6 +13,7 @@ from app.view.main_window import MainWindow
 from app.common.signal_bus import jsSignal
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
 from PyQt5.QtWebChannel import QWebChannel
+from app.dowmload import DownLoaderDialog
 
 
 def windows():
@@ -54,7 +55,6 @@ def windows():
     gridLayout.addWidget(splitter)
 
     # 图层
-
     tree.setHeaderLabels(['图层'])
     for root_key in urls.keys():
         root = QTreeWidgetItem(tree)
@@ -66,13 +66,16 @@ def windows():
     tree.itemClicked.connect(select_layer)
     # initNavigation()
 
+    downloader = DownLoaderDialog()
+
     pos = NavigationItemPosition.SCROLL
     win.addSubInterface(viewInterface, Icon.GRID, '影像', pos)
+    win.addSubInterface(downloader, Icon.GRID, '下載', pos)
     win.show()
     # win.__init__(tiles,geojson)
 
     sys.exit(app.exec_())
-    
+
 def select_layer(item):
     map_name = item.text(0)
     if map_name in urls.keys():

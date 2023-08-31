@@ -113,7 +113,6 @@ class MainWindow(FluentWindow):
     #     # qwebengine.page().runJavaScript('url=\"'+url+'\";')
     #     self.web.page().runJavaScript('setUrl(\"' + url + '\");')
 
-
     def connectSignalToSlot(self):
         signalBus.micaEnableChanged.connect(self.setMicaEffectEnabled)
         signalBus.switchToSampleCard.connect(self.switchToSample)

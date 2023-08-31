@@ -15,7 +15,7 @@ from threading import Thread, Lock
 import urllib.request as ur
 import PIL.Image as pil
 from .Ui_download import Ui_Dialog
-from downloader import *
+# from downloader import *
 from collections.abc import Callable, Iterable, Mapping
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from multiprocessing import Process, Queue, Pool, Manager
@@ -44,7 +44,8 @@ class Downloader(QThread):
         # self.update = update
         self.mutex = Lock()
         self.stopMe = 0
-    def download(self, prom):
+
+    def download(self, prom):  # sourcery skip: raise-specific-error
         url = prom[0]
         i = prom[1]
         # j = prom[2]
@@ -55,7 +56,7 @@ class Downloader(QThread):
         while (err < 3):
             try:
                 data = ur.urlopen(header).read()
-            except:
+            except Exception:
                 err += 1
             else:
                 return data, i
@@ -64,28 +65,26 @@ class Downloader(QThread):
     def run(self):
         # 进程池
         self.pool = Pool(10)
-        result = []
-
-        for i, url in enumerate(self.urls):
-            result.append(self.pool.apply_async(
-                func=download, args=((url[2], i),)))
-
+        result = [
+            self.pool.apply_async(func=download, args=((url[2], i),))
+            for i, url in enumerate(self.urls)
+        ]
         self.pool.close()
         self.pool.join()
-        for res in result: 
+        for res in result:
             data, i = res.get()
             # self.datas[i] = [url[0], url[1], data]
-            z_path = self.path + '/' + str(self.zoom)
+            z_path = f'{self.path}/{str(self.zoom)}'
             if not os.path.exists(z_path):
                 os.mkdir(z_path)
-            x_path = z_path + '/' + str(self.urls[i][0])
+            x_path = f'{z_path}/{str(self.urls[i][0])}'
             if not os.path.exists(x_path):
                 os.mkdir(x_path)
-            y_path = x_path + '/' + str(self.urls[i][1])
-            
+            y_path = f'{x_path}/{str(self.urls[i][1])}'
+
             picio = io.BytesIO(data)
             small_pic = pil.open(picio)
-            small_pic.save(y_path +'.png', quality=100)
+            small_pic.save(f'{y_path}.png', quality=100)
             # for i, data in enumerate(datas):
             #     x_path = z_path + '/' + str(data[0])
             #     if not os.path.exists(x_path):
@@ -95,8 +94,7 @@ class Downloader(QThread):
             #             picio = io.BytesIO(img[1])
             #             small_pic = pil.open(picio)
             #             small_pic.save(y_path+'.png', quality=100)
-            
-            
+
             self.mutex.acquire()
             # print(y_path)
             self.updateProgress.emit(self.zoom)
@@ -107,13 +105,12 @@ class Downloader(QThread):
                 self.interrupted = True
                 break
         if not self.interrupted:
-             self.processFinished.emit(self.zoom)
+            self.processFinished.emit(self.zoom)
             #  self.pool.terminate()
             #  self.pool = None
         else:
             self.processInterrupted.emit()
-       
-        
+
     def stop(self):
         self.mutex.acquire()
         self.stopMe = 1
@@ -144,7 +141,7 @@ class Downloader2(Thread):
         while (err < 3):
             try:
                 data = ur.urlopen(header).read()
-            except:
+            except Exception:
                 err += 1
             else:
                 return data
@@ -174,10 +171,9 @@ def download(prom):
     while (err < 3):
         try:
             data = ur.urlopen(header).read()
-        except:
+        except Exception:
             err += 1
         else:
-
             return data, i
     raise Exception("Bad network link.")
 
@@ -187,7 +183,7 @@ class DownLoaderDialog(QDialog, Ui_Dialog):
         super(DownLoaderDialog, self).__init__()
         self.setupUi(self)
         self.setWindowTitle('瓦片下载')
-        #self.urls = None
+        # self.urls = None
         self.url_len = {}
         self.count = {}
         self.urls_task = None
@@ -200,14 +196,14 @@ class DownLoaderDialog(QDialog, Ui_Dialog):
                      "outPath": None}
         self.zoom = [0, 0, 0, 0, 0, 0, 0, 0,
                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        
-        #self.mapper = QSignalMapper(self)
+
+        # self.mapper = QSignalMapper(self)
         self.thread_pool = QThreadPool()  # 线程池对象，用于管理多个线程
         self.allButton.clicked.connect(self.selectAll)
         self.noneButton.clicked.connect(self.selectNone)
         self.startButton.clicked.connect(self.startDownTask)
         self.foldButton.clicked.connect(self.openFold)
-        #self.connect(self.checkBox1, SIGNAL("stateChanged()"), self.mapper, SLOT("selectChanged()"))
+        # self.connect(self.checkBox1, SIGNAL("stateChanged()"), self.mapper, SLOT("selectChanged()"))
         self.checkBox1.stateChanged.connect(
             lambda: self.selectChanged(self.checkBox1))
         self.checkBox2.stateChanged.connect(
@@ -254,29 +250,26 @@ class DownLoaderDialog(QDialog, Ui_Dialog):
         if not self.info['extent']:
             return
         index = int(checkbox.objectName().split('x')[1]) - 1
-        if checkbox.isChecked():
-            self.zoom[index] = 1
-        else:
-            self.zoom[index] = 0
+        self.zoom[index] = 1 if checkbox.isChecked() else 0
         self.sum = 0
         x1 = float(self.info['extent'][0])
         y1 = float(self.info['extent'][1])
         x2 = float(self.info['extent'][2])
         y2 = float(self.info['extent'][3])
-        server = self.info['url']
+        # server = self.info['url']
         # 计算瓦片数目
-        #self.urls = []
+        # self.urls = []
         for i in range(len(self.zoom)):
             if self.zoom[i] == 1:
-                pos1x, pos1y = self.wgs_to_tile(x1, y1, (i+1))
-                pos2x, pos2y = self.wgs_to_tile(x2, y2, (i+1))
+                pos1x, pos1y = self.wgs_to_tile(x1, y1, (i + 1))
+                pos2x, pos2y = self.wgs_to_tile(x2, y2, (i + 1))
                 len_x = pos2x - pos1x + 1
                 len_y = pos2y - pos1y + 1
                 self.sum += len_x * len_y
         # for z_urls in self.urls:
         #     for x_urls in z_urls:
         #         sum += len(x_urls[1])
-        self.num_info.setText('瓦片数量：' + str(self.sum))
+        self.num_info.setText(f'瓦片数量：{str(self.sum)}')
 
     def startDownTask(self):
         if not self.info['extent']:
@@ -294,105 +287,54 @@ class DownLoaderDialog(QDialog, Ui_Dialog):
         self.outBrowser.repaint()
         self.outBrowser.append('下载源：' + self.info['url'])
         self.outBrowser.repaint()
-        start = time.time()
+        # start = time.time()
         for i in range(len(self.zoom)):
             if self.zoom[i] == 1:
-                self.outBrowser.append('获取第{0}级url……'.format(i+1))
+                self.outBrowser.append('获取第{0}级url……'.format(i + 1))
                 self.outBrowser.repaint()
                 x1 = float(self.info['extent'][0])
                 y1 = float(self.info['extent'][1])
                 x2 = float(self.info['extent'][2])
                 y2 = float(self.info['extent'][3])
                 server = self.info['url']
-                urls = self.get_urls(x1, y1, x2, y2, (i+1), server)
-                self.outBrowser.append('正在下载第{0}级瓦片'.format(i+1))
+                urls = self.get_urls(x1, y1, x2, y2, (i + 1), server)
+                self.outBrowser.append('正在下载第{0}级瓦片'.format(i + 1))
                 self.outBrowser.repaint()
 
                 # 分配内存
                 # 拉直数组
                 urls_task = []
                 for x_urls in urls:
-                    for y_urls in x_urls[1]:
-                        urls_task.append([x_urls[0], y_urls[0], y_urls[1]])
-                titles = [[None, None, None]]*len(urls_task)
+                    urls_task.extend([x_urls[0], y_urls[0], y_urls[1]] for y_urls in x_urls[1])
+                titles = [[None, None, None]] * len(urls_task)
                 url_len = len(urls_task)
                 self.outBrowser.append('下载进度：0/{0}'.format(url_len))
                 self.outBrowser.repaint()
-                self.url_len[(i+1)] = url_len
-                self.count[(i+1)] = 0
-                '''
-                # titles = self.download_tiles(urls_task, (i+1), mutex)
-                # datas = main(x1, y1, x2, y2, (i+1), r'download/test1.tif', server='Google 84')
-                # datas = main(urls, (i+1))
-                                
-                # # 创建进程
-                # tasks_num = 10
-                # tasks = []
+                self.url_len[(i + 1)] = url_len
+                self.count[(i + 1)] = 0
 
-                # for group in range(int(len(urls)/tasks_num)+1):
-
-                #     for task_ in range(tasks_num):
-                #         task_id = task_ + group * 10
-                #         if task_id ==len(urls):
-                #             break
-                #         urls_task = urls[task_id]
-                #         titles_task = titles[task_id]
-
-                # with ThreadPoolExecutor(max_workers=10) as t:
-                #     obj = [t.submit(download, (url[2], k))
-                #            for k, url in enumerate(urls_task)]
-                #     reuslts = []
-                #     self.count = 0
-                #     for future in as_completed(obj):
-                #         data,k = future.result()
-                #     # for i in obj:
-                #     #     reuslts.append(i)
-                #     # for result in reuslts:
-                #         # print(result)
-                #         self.count += 1
-                #         titles[k] = [urls_task[k][0], urls_task[k][1], data]
-                #         print("\rDownLoading...[{0}]".format(self.count), end='')
-                #         self.updateProgress()
-
-                # pool = Pool(10)
-                # result = []
-                # for k, url in enumerate(urls_task):
-                #     result.append(pool.apply_async(
-                #         func=download, args=((url[2], k),)))
-                #     print('{0} 开始'.format(k))
-                # # pool.close()
-                # # pool.join()
-                # self.count = 0
-                # for res in result:
-                #     # print()
-                #     data, k = res.get()
-                #     self.count += 1
-                #     titles[k] = [urls_task[k][0], urls_task[k][1], data]
-                #     print("\rDownLoading...[{0}]".format(self.count), end='')
-                #     self.updateProgress()
-                '''
                 self.outPath = self.info['outPath']
-                task = Downloader(self.outPath, (i+1), urls_task, titles)
+                task = Downloader(self.outPath, (i + 1), urls_task, titles)
                 task.updateProgress.connect(self.updateProgress)
                 task.processFinished.connect(self.processFinished)
                 task.processInterrupted.connect(self.processInterrupted)
                 task.start()
-                self.tasks.append([(i+1),task])
+                self.tasks.append([(i + 1), task])
                 # task.wait()
 
-        end_time = time.time()
+        # end_time = time.time()
         # print('用时 {:.2f} 秒'.format(end_time - start))
         return titles
-    
+
     def openFold(self):
         path = self.info['outPath']
         if path == '':
             path = "C:/"
-        directory = QFileDialog.getExistingDirectory(None,"选取文件夹", path)  # 起始路径
+        directory = QFileDialog.getExistingDirectory(None, "选取文件夹", path)  # 起始路径
         self.pathLine.setText(directory)
         self.info['outPath'] = directory
-        pass
-    
+        # pass
+
     def download_tiles(self, urls, z, mutex, multi=10):
         global COUNT  # 声明全局变量
         COUNT = 0  # 初始化为0
@@ -423,60 +365,46 @@ class DownLoaderDialog(QDialog, Ui_Dialog):
         pos2x, pos2y = self.wgs_to_tile(x2, y2, z)
         lenx = pos2x - pos1x + 1
         leny = pos2y - pos1y + 1
-        #print("瓦片数量：{x} / {y} / {z}".format(x=lenx, y=leny, z=z))
+        # print("瓦片数量：{x} / {y} / {z}".format(x=lenx, y=leny, z=z))
         x_urls = []
         for x in range(pos1x, pos1x + lenx):
-            y_urls = []
-            for y in range(pos1y, pos1y + leny):
-                y_urls.append([y, source.format(x=x, y=y, z=z)])
+            y_urls = [
+                [y, source.format(x=x, y=y, z=z)]
+                for y in range(pos1y, pos1y + leny)
+            ]
             x_urls.append([x, y_urls])
 
-        #urls = [get_url(source, i, j, z, style) for j in range(pos1y, pos1y + leny) for i in range(pos1x, pos1x + lenx)]
+        # urls = [get_url(source, i, j, z, style) for j in range(pos1y, pos1y + leny) for i in range(pos1x, pos1x + lenx)]
         return x_urls
 
     def selectAll(self):
-        self.checkBox1.setChecked(True)
-        self.checkBox2.setChecked(True)
-        self.checkBox3.setChecked(True)
-        self.checkBox4.setChecked(True)
-        self.checkBox5.setChecked(True)
-        self.checkBox6.setChecked(True)
-        self.checkBox7.setChecked(True)
-        self.checkBox8.setChecked(True)
-        self.checkBox9.setChecked(True)
-        self.checkBox10.setChecked(True)
-        self.checkBox11.setChecked(True)
-        self.checkBox12.setChecked(True)
-        self.checkBox13.setChecked(True)
-        self.checkBox14.setChecked(True)
-        self.checkBox15.setChecked(True)
-        self.checkBox16.setChecked(True)
-        self.checkBox17.setChecked(True)
-        self.checkBox18.setChecked(True)
-        self.checkBox19.setChecked(True)
-        self.checkBox20.setChecked(True)
+        self._extracted_from_selectNone_2(True)
 
     def selectNone(self):
-        self.checkBox1.setChecked(False)
-        self.checkBox2.setChecked(False)
-        self.checkBox3.setChecked(False)
-        self.checkBox4.setChecked(False)
-        self.checkBox5.setChecked(False)
-        self.checkBox6.setChecked(False)
-        self.checkBox7.setChecked(False)
-        self.checkBox8.setChecked(False)
-        self.checkBox9.setChecked(False)
-        self.checkBox10.setChecked(False)
-        self.checkBox11.setChecked(False)
-        self.checkBox12.setChecked(False)
-        self.checkBox13.setChecked(False)
-        self.checkBox14.setChecked(False)
-        self.checkBox15.setChecked(False)
-        self.checkBox16.setChecked(False)
-        self.checkBox17.setChecked(False)
-        self.checkBox18.setChecked(False)
-        self.checkBox19.setChecked(False)
-        self.checkBox20.setChecked(False)
+        self._extracted_from_selectNone_2(False)
+
+    # TODO Rename this here and in `selectAll` and `selectNone`
+    def _extracted_from_selectNone_2(self, arg0):
+        self.checkBox1.setChecked(arg0)
+        self.checkBox2.setChecked(arg0)
+        self.checkBox3.setChecked(arg0)
+        self.checkBox4.setChecked(arg0)
+        self.checkBox5.setChecked(arg0)
+        self.checkBox6.setChecked(arg0)
+        self.checkBox7.setChecked(arg0)
+        self.checkBox8.setChecked(arg0)
+        self.checkBox9.setChecked(arg0)
+        self.checkBox10.setChecked(arg0)
+        self.checkBox11.setChecked(arg0)
+        self.checkBox12.setChecked(arg0)
+        self.checkBox13.setChecked(arg0)
+        self.checkBox14.setChecked(arg0)
+        self.checkBox15.setChecked(arg0)
+        self.checkBox16.setChecked(arg0)
+        self.checkBox17.setChecked(arg0)
+        self.checkBox18.setChecked(arg0)
+        self.checkBox19.setChecked(arg0)
+        self.checkBox20.setChecked(arg0)
 
     # Get tile coordinates in Google Maps based on latitude and longitude of WGS-84
 
@@ -487,7 +415,9 @@ class DownLoaderDialog(QDialog, Ui_Dialog):
         w : Latitude
         z : zoom
         '''
-        def isnum(x): return isinstance(x, int) or isinstance(x, float)
+        def isnum(x):
+            return isinstance(x, (int, float))
+
         if not (isnum(j) and isnum(w)):
             raise TypeError("j and w must be int or float!")
 
@@ -536,7 +466,7 @@ class DownLoaderDialog(QDialog, Ui_Dialog):
         # self.outBrowser.moveCursor(
         #     QTextCursor.StartOfLine, QTextCursor.MoveAnchor)
         # 重新设置值
-        
+
         # print("\rDownLoading...[{0}]".format(self.count), end='')
         lastLine.insertText(
             '下载进度：{0}/{1}'.format(self.count[zoom], self.url_len[zoom]))
@@ -548,7 +478,7 @@ class DownLoaderDialog(QDialog, Ui_Dialog):
         self.restoreGui()
 
     def processFinished(self, zoom):
-        
+
         # self.count[zoom] = int(self.count[zoom]) + 1
         lastLine = self.outBrowser.textCursor()
         text = '正在下载第{0}级瓦片'.format(zoom)
@@ -562,23 +492,22 @@ class DownLoaderDialog(QDialog, Ui_Dialog):
         # self.outBrowser.moveCursor(
         #     QTextCursor.StartOfLine, QTextCursor.MoveAnchor)
         # 重新设置值
-        
+
         # print("\rDownLoading...[{0}]".format(self.count), end='')
         lastLine.insertText(
             '下载进度：{0}/{1}'.format(self.url_len[zoom], self.url_len[zoom]))
         self.outBrowser.setTextCursor(lastLine)
         # self.outBrowser.append('下载进度：{0}/{1}'.format())
         self.outBrowser.repaint()
-        
-        
+
         self.stopProcessing(zoom)
         # self.restoreGui()
         # self.setProgressRange(self.tr('完成！'), -1)
         # self.progressBar.setValue(1)
 
-    def stopProcessing(self,zoom):
-        for i,workThread in self.tasks:
-            if i==zoom and workThread is not None:
+    def stopProcessing(self, zoom):
+        for i, workThread in self.tasks:
+            if i == zoom and workThread is not None:
                 workThread.stop()
                 workThread = None
                 # self.outBrowser.append('任务终止……')

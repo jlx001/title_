@@ -27,7 +27,7 @@ import io
 #     json.dump(urls, f, indent=2, sort_keys=True, ensure_ascii=False)  # 写为多行
 
 
-class Print(QObject):
+class jsSignal(QObject):
     # pyqtSlot，中文网络上大多称其为槽。作用是接收网页发起的信号
     @pyqtSlot(str, str, str, str)
     def setExtent(self, x1, y1, x2, y2):
@@ -36,15 +36,11 @@ class Print(QObject):
         x1 = float(x1)
         x2 = float(x2)
         y1 = float(y1)
-        y2 = float(y2) 
+        y2 = float(y2)
         if x1 > x2:
-            temp = x2
-            x2 = x1
-            x1 = temp
+            x2, x1 = x1, x2
         if y1 < y2:
-            temp = y1
-            y1 = y2
-            y2 = temp
+            y1, y2 = y2, y1
         win.extent = [x1, y1, x2, y2]
         print(win.extent)
 
@@ -81,10 +77,7 @@ class MainWindow(QMainWindow):
     # 重写关闭事件保存设置
 
     def closeEvent(self, event):
-        # 保存设置
-        path = ''
-        if downloder.info['outPath'] is not None:
-            path = downloder.info['outPath']
+        path = '' if downloder.info['outPath'] is None else downloder.info['outPath']
         conf = {
             "windows": {
                 "width": self.width(),
@@ -92,7 +85,7 @@ class MainWindow(QMainWindow):
                 "outPath": path
             },
             "urls": urls,
-           
+
         }
         with open("conf.json", "w", encoding='utf-8') as f:
             # json.dump(dict_, f)  # 写为一行
@@ -175,7 +168,7 @@ def Windows(win_conf):
 
     # 创建一个QWebChannel对象 # 增加一个通信中需要用到的频道
     channel = QWebChannel()
-    printer = Print()  # 通信过程中需要使用到的功能类
+    printer = jsSignal()  # 通信过程中需要使用到的功能类
 
     # 将MapHandler对象注册到QWebChannel中，命名为"printer"
     channel.registerObject("printer", printer)
@@ -184,7 +177,7 @@ def Windows(win_conf):
     qwebengine.setGeometry(200, 200, widget.width(), widget.height())
 
     path = "file:///map.html"
-    #path = path.replace('\\', '/')
+    # path = path.replace('\\', '/')
     qwebengine.load(QUrl(path))
     splitter.addWidget(qwebengine)
     gridout.addWidget(splitter)
@@ -194,7 +187,7 @@ def Windows(win_conf):
         root.setText(0, root_key)
         for key in urls.get(root_key).keys():
             child = QTreeWidgetItem(root)
-            child.setCheckState(0,Qt.Unchecked)
+            child.setCheckState(0, Qt.Unchecked)
             child.setText(0, key)
     # 信号
     listWidget.itemClicked.connect(select_layer)
@@ -217,7 +210,7 @@ if __name__ == '__main__':
     conf = None
     urls = None
     win_conf = None
-    #extent = None
+    # extent = None
     with open("conf.json", 'r', encoding='UTF-8') as f:
         conf = json.load(f)
     urls = conf.get('urls')

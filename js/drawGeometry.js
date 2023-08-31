@@ -1,3 +1,4 @@
+
 //import { getBottomLeft, getBottomRight, getTopLeft, getTopRight } from '../ol7/extent';
 //创建源及图层
 var source = new ol.source.Vector();
@@ -36,7 +37,7 @@ draw.on('drawend', function(e) {
 })
 function sendMes(x1,y1,x2,y2) {
     // 调用python端的功能类的方法执行操作
-    printer.setExtent(x1,y1,x2,y2);
+    window.printer.setExtent(x1,y1,x2,y2);
   }
 
 

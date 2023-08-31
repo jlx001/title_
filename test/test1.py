@@ -1,18 +1,52 @@
-# coding:utf-8
-import os
-import sys
-import json
-from PyQt5.QtCore import Qt, QTranslator, QUrl
-from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QHBoxLayout, QTreeWidget, QTreeWidgetItem, QSplitter, QMessageBox, QLabel, QLineEdit, QPushButton, QFileDialog, QInputDialog
-from qfluentwidgets import FluentTranslator, TreeWidget, NavigationItemPosition
+# coding: utf-8
 
-from app.common.config import cfg
-from app.common.icon import Icon
-from app.view.main_window import MainWindow
-from app.common.signal_bus import jsSignal
+import sys
+import os
+import json
+from PyQt5.QtCore import QUrl, QSize, Qt, QObject, pyqtSlot
+from PyQt5.QtGui import QIcon, QDesktopServices
+from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QHBoxLayout, QTreeWidget, QTreeWidgetItem, QSplitter, QMessageBox
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
 from PyQt5.QtWebChannel import QWebChannel
+
+from qfluentwidgets import (NavigationAvatarWidget, NavigationItemPosition, MessageBox, FluentWindow, SplashScreen,
+                            TreeWidget)
+from qfluentwidgets import FluentIcon as FIF
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from app.common.config import cfg
+from app.common.icon import Icon
+from app.common import resource
+
+class jsSignal(QObject):
+    # pyqtSlot，中文网络上大多称其为槽。作用是接收网页发起的信号
+    @pyqtSlot(str, str, str, str)
+    def setExtent(self, x1, y1, x2, y2):
+        # 对接收到的内容进行处理，比如调用打印机进行打印等等。
+        # 排序
+        x1 = float(x1)
+        x2 = float(x2)
+        y1 = float(y1)
+        y2 = float(y2)
+        if x1 > x2:
+            x2, x1 = x1, x2
+        if y1 < y2:
+            y1, y2 = y2, y1
+        print(x1, y1, x2, y2)
+
+
+class MainWindow(FluentWindow):
+    def __init__(self, conf):
+        super().__init__()
+        self.win_conf = conf.get('windows')
+        self.urls = conf.get('urls')
+
+        self.resize(900, 700)
+        self.setWindowIcon(QIcon(':/qfluentwidgets/images/logo.png'))
+        self.setWindowTitle('PyQt-Fluent-Widgets')
+
+        desktop = QApplication.desktop().availableGeometry()
+        w, h = desktop.width(), desktop.height()
+        self.move(w // 2 - self.width() // 2, h // 2 - self.height() // 2)
 
 
 def windows():
@@ -53,8 +87,7 @@ def windows():
     splitter.addWidget(web)
     gridLayout.addWidget(splitter)
 
-    # 图层
-
+    # 图层树
     tree.setHeaderLabels(['图层'])
     for root_key in urls.keys():
         root = QTreeWidgetItem(tree)
@@ -67,12 +100,13 @@ def windows():
     # initNavigation()
 
     pos = NavigationItemPosition.SCROLL
-    win.addSubInterface(viewInterface, Icon.GRID, '影像', pos)
+    win.addSubInterface(viewInterface, Icon.GRID, 'View', pos)
     win.show()
     # win.__init__(tiles,geojson)
 
     sys.exit(app.exec_())
-    
+
+
 def select_layer(item):
     map_name = item.text(0)
     if map_name in urls.keys():
@@ -86,37 +120,13 @@ def select_layer(item):
     # qwebengine.page().runJavaScript('url=\"'+url+'\";')
     web.page().runJavaScript('setUrl(\"' + url + '\");')
 
+
+
 if __name__ == '__main__':
-    # enable dpi scale
-    if cfg.get(cfg.dpiScale) == "Auto":
-        QApplication.setHighDpiScaleFactorRoundingPolicy(
-            Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
-        QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
-    else:
-        os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "0"
-        os.environ["QT_SCALE_FACTOR"] = str(cfg.get(cfg.dpiScale))
-
-    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
-
-    # create application
     app = QApplication(sys.argv)
-    app.setAttribute(Qt.AA_DontCreateNativeWidgetSiblings)
-
-    # internationalization
-    locale = cfg.get(cfg.language).value
-    translator = FluentTranslator(locale)
-    galleryTranslator = QTranslator()
-    galleryTranslator.load(locale, "gallery", ".", ":/gallery/i18n")
-
-    app.installTranslator(translator)
-    app.installTranslator(galleryTranslator)
-
-    # create main window
-
     conf = None
     urls = None
     win_conf = None
-    # extent = None
     with open("conf.json", 'r', encoding='UTF-8') as f:
         conf = json.load(f)
     urls = conf.get('urls')
@@ -124,4 +134,3 @@ if __name__ == '__main__':
     web = QWebEngineView()
     win = MainWindow(conf)
     windows()
-

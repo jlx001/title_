@@ -4,12 +4,14 @@ from PyQt5.QtWidgets import (QMainWindow, QWidget, QTreeWidget, QGridLayout, QAc
 from PyQt5.QtWebChannel import QWebChannel
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtNetwork import QNetworkProxy
-
+from qfluentwidgets import TabBar
+from app.dowmload import DownLoaderDialog
 # from windows.dowmload import DownLoaderDialog
 import json
 import sys
 import os
 import io
+from PyQt5.QtWidgets import QTabWidget
 
 
 # urls = {
@@ -114,15 +116,14 @@ def openDownLoadForm():
     url = urls.get(listWidget.currentItem().parent().text(0)
                    ).get(listWidget.currentItem().text(0))
     # extent = None
-    downloder.url_info.setText('瓦片来源：' + listWidget.currentItem().text(0))
-    downloder.extent_info.setText('下载范围：' + str(win.extent))
+    downloder.url_info.setText(f'瓦片来源：{listWidget.currentItem().text(0)}')
+    downloder.extent_info.setText(f'下载范围：{str(win.extent)}')
     downloder.info['url'] = url
     downloder.info['extent'] = win.extent
     downloder.info['outPath'] = win_conf['outPath']
     downloder.pathLine.setText(downloder.info['outPath'])
-    downloder.setModal(True)
+    # downloder.setModal(True)
     downloder.show()
-
 
 
 def select_layer(item):
@@ -152,6 +153,9 @@ def Windows(win_conf):
     # QNetworkProxy.setApplicationProxy(proxy)
     win.resize(int(win_conf.get('width')), int(win_conf.get('height')))
     widget = QWidget()
+    
+    tabWidget = QTabWidget()
+    
     splitter = QSplitter(widget)
     win.setCentralWidget(widget)
     gridout = QGridLayout()
@@ -165,7 +169,6 @@ def Windows(win_conf):
     splitter.addWidget(listWidget)
 
     # 新建一个QWebEngineView()对象
-
     # 创建一个QWebChannel对象 # 增加一个通信中需要用到的频道
     channel = QWebChannel()
     printer = jsSignal()  # 通信过程中需要使用到的功能类
@@ -180,21 +183,24 @@ def Windows(win_conf):
     # path = path.replace('\\', '/')
     qwebengine.load(QUrl(path))
     splitter.addWidget(qwebengine)
-    gridout.addWidget(splitter)
+    
+    tabWidget.addTab(splitter, "地图")
+    tabWidget.addTab(downloder, "下載")
+    
+    
+    gridout.addWidget(tabWidget)
     listWidget.setHeaderLabels(['图层'])
     for root_key in urls.keys():
         root = QTreeWidgetItem(listWidget)
         root.setText(0, root_key)
         for key in urls.get(root_key).keys():
             child = QTreeWidgetItem(root)
-            child.setCheckState(0, Qt.Unchecked)
+            # child.setCheckState(0, Qt.Unchecked)
             child.setText(0, key)
     # 信号
     listWidget.itemClicked.connect(select_layer)
-
     win.show()
     # win.__init__(tiles,geojson)
-
     sys.exit(app.exec_())
 
 
@@ -203,7 +209,7 @@ if __name__ == '__main__':
     win = MainWindow()
     # setup stylesheet
     # apply_stylesheet(app, theme='dark_amber.xml')
-    # downloder = DownLoaderDialog()
+    downloder = DownLoaderDialog()
     listWidget = QTreeWidget()
     # listWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)#设置item可以多选
     qwebengine = QWebEngineView(win)

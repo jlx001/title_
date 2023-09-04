@@ -60,7 +60,8 @@ class Downloader(QThread):
                 err += 1
             else:
                 return data, i
-        raise Exception("Bad network link.")
+        return False
+        # raise Exception("Bad network link.")
 
     def run(self):
         # 进程池
@@ -73,18 +74,19 @@ class Downloader(QThread):
         self.pool.join()
         for res in result:
             data, i = res.get()
+            if data:
             # self.datas[i] = [url[0], url[1], data]
-            z_path = f'{self.path}/{str(self.zoom)}'
-            if not os.path.exists(z_path):
-                os.mkdir(z_path)
-            x_path = f'{z_path}/{str(self.urls[i][0])}'
-            if not os.path.exists(x_path):
-                os.mkdir(x_path)
-            y_path = f'{x_path}/{str(self.urls[i][1])}'
+                z_path = f'{self.path}/{str(self.zoom)}'
+                if not os.path.exists(z_path):
+                    os.mkdir(z_path)
+                x_path = f'{z_path}/{str(self.urls[i][0])}'
+                if not os.path.exists(x_path):
+                    os.mkdir(x_path)
+                y_path = f'{x_path}/{str(self.urls[i][1])}'
 
-            picio = io.BytesIO(data)
-            small_pic = pil.open(picio)
-            small_pic.save(f'{y_path}.png', quality=100)
+                picio = io.BytesIO(data)
+                small_pic = pil.open(picio)
+                small_pic.save(f'{y_path}.png', quality=100)
             # for i, data in enumerate(datas):
             #     x_path = z_path + '/' + str(data[0])
             #     if not os.path.exists(x_path):
@@ -277,6 +279,9 @@ class DownLoaderDialog(QDialog, Ui_Dialog):
             return
         if sum(self.zoom) == 0:
             QMessageBox.warning(self, '警告', '请选择下载等级')
+            return
+        if not self.pathLine.text():
+            QMessageBox.warning(self, '警差', '下载目录不能为空')
             return
         self.info['zoom'] = self.zoom
         self.info['outPath'] = self.pathLine.text().replace('\\', '/')

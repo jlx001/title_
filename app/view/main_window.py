@@ -204,7 +204,7 @@ class MainWindow(FluentWindow):
         #         # child.setCheckState(0, Qt.Unchecked)
         #         child.setText(0, key)
         # self.tree.itemClicked.connect(self.select_layer)
-        
+
         # self.resize(int(self.win_conf.get('width')),
         #             int(self.win_conf.get('height')))
         # self.setMinimumWidth(760)

@@ -5,7 +5,9 @@ var scaleLineControl = new ol.control.ScaleLine({
   units: "metric",
   // 比例尺默认的单位
 });
-var grid=0;
+//绘制工具
+var draw = null
+var grid = 0;
 //实例化OSM图层数据源对象
 var osmSource = new ol.source.OSM();
 //加载瓦片网格图层
@@ -67,7 +69,7 @@ function setUrl(url) {
   r_layer.getSource().setUrl(url)
   //刷新地图
   map.getLayers().forEach(layer => layer.getSource().refresh());
-  map.addLayer(geoLayer)
+  // map.addLayer(geoLayer)
 }
 //监听鼠标左键信号
 map.on("singleclick", (evt) => {
@@ -90,8 +92,22 @@ window.onload = function () {
 function draw_jx() {
   //map.addLayer(layer);
   source.clear();
+  if (draw != null) {
+    map.removeInteraction(draw)
+  }
+  draw = drawRect;
   map.addInteraction(draw);
-}
+};
+//绘制多边形
+function draw_dbx() {
+  //map.addLayer(layer);
+  source.clear();
+  if (draw != null) {
+    map.removeInteraction(draw)
+  }
+  draw = drawPolygon;
+  map.addInteraction(draw);
+};
 var unitsSelect = document.getElementById("units");
 // 让地图的比例尺单位根据用户的选择而改变
 unitsSelect.addEventListener(
@@ -112,13 +128,13 @@ document.getElementById("zoom").innerHTML =
 
 function gridView() {
   //alert('grid=',grid)
-  if (grid==0) {
+  if (grid == 0) {
     map.addLayer(gridLayer)
-    grid=1
+    grid = 1
   }
   else {
     map.removeLayer(gridLayer)
-    grid=0
+    grid = 0
   }
 
 }

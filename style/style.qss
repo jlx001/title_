@@ -1,0 +1,24 @@
+QTabBar::tab {
+    padding: 10px 12px;
+    color: black;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    margin: 0;   
+}
+QTabBar::tab:selected{
+    color: rgba(0, 0, 0, 0.63);
+	background-color:rgba(79, 168, 212, 0.63)
+}
+
+QListWidget{
+    background-color :rgba(227, 230, 232, 0.775)
+    }
+QListWidget::item{
+    background-color:rgba(227, 230, 232, 0.775);
+    height: 40px
+    }
+        
+QListWidget::item:selected{
+        background-color:rgb(107, 173, 217)
+        }

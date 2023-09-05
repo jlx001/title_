@@ -1,17 +1,18 @@
 from PyQt5.QtCore import QObject, pyqtSlot, QUrl, Qt
-from PyQt5.QtWidgets import (QMainWindow, QWidget, QTreeWidget, QGridLayout, QAction,
-                             QApplication, QSplitter, QTreeWidgetItem, QMessageBox, QAbstractItemView)
+from PyQt5.QtWidgets import (QMainWindow, QWidget, QTreeWidget, QGridLayout, QAction, QStyle,
+                             QApplication, QSplitter, QTreeWidgetItem, QMessageBox, QAbstractItemView, QTabWidget)
 from PyQt5.QtWebChannel import QWebChannel
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtNetwork import QNetworkProxy
-from qfluentwidgets import TabBar
-from app.dowmload import DownLoaderDialog
+from qfluentwidgets import Pivot
+from app.function.download import DownLoaderDialog
+from app.function.progress import ProgressDialog
 # from windows.dowmload import DownLoaderDialog
 import json
 import sys
 import os
 import io
-from PyQt5.QtWidgets import QTabWidget
+from PyQt5.QtWidgets import QProgressBar
 
 
 # urls = {
@@ -31,20 +32,23 @@ from PyQt5.QtWidgets import QTabWidget
 
 class jsSignal(QObject):
     # pyqtSlot，中文网络上大多称其为槽。作用是接收网页发起的信号
-    @pyqtSlot(str, str, str, str)
-    def setExtent(self, x1, y1, x2, y2):
+    @pyqtSlot(str)
+    def setExtent(self, jsonStr):
         # 对接收到的内容进行处理，比如调用打印机进行打印等等。
         # 排序
-        x1 = float(x1)
-        x2 = float(x2)
-        y1 = float(y1)
-        y2 = float(y2)
+        arr = json.loads(jsonStr)
+        # print(arr)
+        x1 = arr[0]
+        y1 = arr[1]
+        x2 = arr[2]
+        y2 = arr[3]
         if x1 > x2:
             x2, x1 = x1, x2
         if y1 < y2:
             y1, y2 = y2, y1
         win.extent = [x1, y1, x2, y2]
         print(win.extent)
+        return
 
 
 class MainWindow(QMainWindow):
@@ -103,6 +107,11 @@ class MainWindow(QMainWindow):
         # else:
         #     event.ignore()
 
+    # 加载qss
+    def setQss(self, style):
+        with open(style, 'r') as f:
+            self.setStyleSheet(f.read())
+
 
 def openDownLoadForm():
     if listWidget.currentItem() is None:
@@ -153,9 +162,9 @@ def Windows(win_conf):
     # QNetworkProxy.setApplicationProxy(proxy)
     win.resize(int(win_conf.get('width')), int(win_conf.get('height')))
     widget = QWidget()
-    
+
     tabWidget = QTabWidget()
-    
+    # tabWidget.setStyleSheet()
     splitter = QSplitter(widget)
     win.setCentralWidget(widget)
     gridout = QGridLayout()
@@ -183,11 +192,14 @@ def Windows(win_conf):
     # path = path.replace('\\', '/')
     qwebengine.load(QUrl(path))
     splitter.addWidget(qwebengine)
-    
+
+    progress = ProgressDialog()
+    progress.listWidget.setCurrentRow(0)
+    progress.stackedWidget.setCurrentIndex(1)
+
     tabWidget.addTab(splitter, "地图")
-    tabWidget.addTab(downloder, "下載")
-    
-    
+    tabWidget.addTab(progress, "下载")
+
     gridout.addWidget(tabWidget)
     listWidget.setHeaderLabels(['图层'])
     for root_key in urls.keys():
@@ -207,6 +219,7 @@ def Windows(win_conf):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     win = MainWindow()
+    win.setQss('./style/style.qss')
     # setup stylesheet
     # apply_stylesheet(app, theme='dark_amber.xml')
     downloder = DownLoaderDialog()

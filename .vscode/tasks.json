@@ -1,0 +1,31 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Ui_progress",
+      "type": "shell",
+      "command": "pyuic5 app\\view\\progress.ui -o app\\view\\Ui_progress.py",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "close": true
+      }
+    },
+    {
+      "label": "Ui_downloading",
+      "type": "shell",
+      "command": "pyuic5 app\\view\\downloading.ui -o app\\view\\Ui_downloading.py",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "close": true
+      }
+    },{
+      "label": "Build_Ui",
+      "dependsOn": [
+          "Ui_progress",
+          "Ui_downloading"
+      ]
+  }
+  ]
+}

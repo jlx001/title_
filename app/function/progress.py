@@ -9,8 +9,7 @@ class ProgressDialog(QDialog, Ui_progressDialog):
         self.setupUi(self)
         self.setWindowTitle('下载')
         self.listWidget.itemClicked.connect(self.item_clicked)
-        
-    
+
     # 下载切换
     def item_clicked(self, item):
         # 获取当前选中的item

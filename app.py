@@ -7,6 +7,8 @@ from PyQt5.QtNetwork import QNetworkProxy
 from qfluentwidgets import Pivot
 from app.function.download import DownLoaderDialog
 from app.function.progress import ProgressDialog
+from app.function.downloading import downloadingDialog
+
 # from windows.dowmload import DownLoaderDialog
 import json
 import sys
@@ -196,7 +198,12 @@ def Windows(win_conf):
     progress = ProgressDialog()
     progress.listWidget.setCurrentRow(0)
     progress.stackedWidget.setCurrentIndex(1)
-
+    downCard_1 = downloadingDialog()
+    downCard_1.img_label.setText('1')
+    downCard_2 = downloadingDialog()
+    downCard_2.img_label.setText('2')
+    progress.downloadLayout.insertWidget(0, downCard_1)
+    progress.downloadLayout.insertWidget(0, downCard_2)
     tabWidget.addTab(splitter, "地图")
     tabWidget.addTab(progress, "下载")
 

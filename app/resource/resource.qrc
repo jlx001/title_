@@ -1,0 +1,10 @@
+<RCC>
+  <qresource prefix="/title_">
+    <file>style/style.qss</file>
+    <file>style/title.qss</file>
+    <file>icon/icon.svg</file>
+    <file>icon/close_win.svg</file>
+    <file>icon/max_win.svg</file>
+    <file>icon/min_win.svg</file>
+  </qresource>
+</RCC>

@@ -8,7 +8,7 @@ from qfluentwidgets import Pivot
 from app.function.download import DownLoaderDialog
 from app.function.progress import ProgressDialog
 from app.function.downloading import downloadingDialog
-
+from app.function.title import Title
 # from windows.dowmload import DownLoaderDialog
 import json
 import sys
@@ -173,6 +173,9 @@ def Windows(win_conf):
     gridout.setSpacing(4)
     gridout.setContentsMargins(2, 2, 2, 8)
     widget.setLayout(gridout)
+    title = Title()
+    gridout.addWidget(title, 0, 0)
+    
 
     listWidget.setMinimumWidth(100)
     listWidget.setMaximumWidth(200)
@@ -226,7 +229,7 @@ def Windows(win_conf):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     win = MainWindow()
-    win.setQss('./style/style.qss')
+    # win.setQss('./style/style.qss')
     # setup stylesheet
     # apply_stylesheet(app, theme='dark_amber.xml')
     downloder = DownLoaderDialog()

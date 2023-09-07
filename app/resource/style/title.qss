@@ -1,0 +1,28 @@
+QPushButton#minButton{
+	image: url(:/title_/icon/min_win.svg);
+    background-color: transparent;;
+}
+QPushButton#minButton:hover{
+    background-color: rgb(114, 94, 230)
+}
+QPushButton#maxButton{
+	image: url(:/title_/icon/max_win.svg);
+    background-color: transparent;;
+}
+QPushButton#closeButton{
+	image: url(:/title_/icon/close_win.svg);
+    background-color: transparent;;
+}
+QPushButton#maxButton:hover{
+    background-color: rgb(114, 94, 230)
+}
+QPushButton#closeButton:hover{
+    background-color: rgb(218, 6, 6)
+}
+
+QPushButton:pressed
+{
+    border-width: 1px;      
+    background-color: red;
+    border-color: red;
+}
